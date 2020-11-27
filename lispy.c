@@ -1,25 +1,46 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Declare a buffer for user input of size 2048
-static char input[2048];
+/* If we are compiling on Windows compile these functions */
+#ifdef _WIN32
+#include <string.h>
 
-int main()
-{
-    puts("Lispy Version 0.0.0.0.1");
-    puts("Press Ctrl+C to Exit\n");
+static char buffer[2048];
 
-    while(1)
-    {
-        // Output our prompt
-        fputs("lispy> ", stdout);
+/* Fake readline function */
+char* readline(char* prompt) {
+  fputs(prompt, stdout);
+  fgets(buffer, 2048, stdin);
+  char* cpy = malloc(strlen(buffer)+1);
+  strcpy(cpy, buffer);
+  cpy[strlen(cpy)-1] = '\0';
+  return cpy;
+}
 
-        // Read a line of user input of maximum size 2048
-        fgets(input, 2048, stdin);
+/* Fake add_history function */
+void add_history(char* unused) {}
 
-        // Echo input back to user
-        printf("No you're a %s", input);
-    }
+/* Otherwise include the editline headers */
+#else
+#include <editline/readline.h>
+#include <editline/history.h>
+#endif
 
-    return 0;
+int main(int argc, char** argv) {
+
+  puts("Lispy Version 0.0.0.0.1");
+  puts("Press Ctrl+c to Exit\n");
+
+  while (1) {
+
+    /* Now in either case readline will be correctly defined */
+    char* input = readline("lispy> ");
+    add_history(input);
+
+    printf("No you're a %s\n", input);
+    free(input);
+
+  }
+
+  return 0;
 }
